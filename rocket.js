@@ -1,76 +1,102 @@
 class Rocket {
 
-  constructor(lifeSpan) {
-    this.gravity = createVector(0, 0.098);
+    constructor(dna) {
+        this.position = createVector(50, height / 2);
+        this.velocity = createVector();
+        this.acceleration = createVector();
 
-    this.genes = [];
-    if(lifeSpan) {
-      for (var x = 0; x < lifeSpan; x++) {
-        this.genes[x] = p5.Vector.random2D();
-        this.genes[x].setMag(0.5);
-      }
+        this.crashed = false;
+        this.completed = false;
+
+        this.distance = [];
+
+        if (dna) this.dna = dna;
+        else this.dna = new DNA();
     }
 
-    this.startPoint();
-  }
-
-  startPoint() {
-    this.position = createVector(50, height / 2);
-    this.velocity = createVector();
-    this.acceleration = createVector();
-    this.reached = false;
-    this.fitness = [];
-    this.probability = 0;
-  };
-
-  // -------------------------------------------
-
-  show() {
-    push();
-    noStroke();
-    translate(this.position.x, this.position.y);
-    rotate(this.velocity.heading());
-    triangle(0, 0, 15, 5, 0, 10);
-    pop();
-  };
-
-  // -------------------------------------------
-
-  applyForce(force) {
-    this.acceleration.add(force);
-  };
-
-  update(count, target) {
-    var distance = dist(
-      this.position.x, this.position.y,
-      target.x, target.y
-    );
-
-    if (distance < 20) {
-      this.reached = true;
-      this.fitness[count] = 1;
-      this.position = target.copy();
+    applyForce(force) {
+        this.acceleration.add(force);
     }
 
-    if (!this.reached) {
-      //this.applyForce(this.gravity);
-      this.applyForce(this.genes[count]);
-
-      this.velocity.add(this.acceleration);
-      this.position.add(this.velocity);
-      this.acceleration.mult(0);
-
-      this.fitness[count] = 1 / distance;
+    calculateDistance() {
+        this.distance[step] = dist(
+            this.position.x, this.position.y,
+            target.x, target.y
+        );
     }
 
-    console.log(this.reached);
-  };
+    update() {
+        if (dist(
+            this.position.x, this.position.y,
+            target.x, target.y
+        ) < 20)
+            this.completed = true;
 
-  calculateFitness() {
-    var sum = 0;
-    for (var x = 0; x < this.fitness.length; x++) {
-      sum += this.fitness[x];
+        if (
+            this.position.x > barrier.x && this.position.x < barrier.x + 25 &&
+            this.position.y > barrier.y && this.position.y < barrier.y + (height / 3)
+        )
+            this.crashed = true;
+
+        if (
+            this.position.x > width || this.position.x < 0 ||
+            this.position.y > height || this.position.y < 0
+        )
+            this.crashed = true;
+
+        if (!this.completed && !this.crashed) {
+            this.applyForce(this.dna.genes[step]);
+            this.velocity.add(this.acceleration);
+            this.position.add(this.velocity);
+            this.acceleration.mult(0);
+        }
+
+        /*if (step > lifespan) {
+            this.velocity.mult(0.9);
+            this.calculateDistance();
+        }*/
+        this.calculateDistance();
     }
-    return sum / this.fitness.length;
-  }
+
+    draw(n) {
+        noStroke();
+        fill(200, 175);
+        rect(0, 0, 4 * n, 4 * n);
+        rect(-n, 4 * n, 6 * n, 14 * n);
+        rect(-2 * n, 12 * n, 1 * n, 2 * n);
+        rect(5 * n, 12 * n, 1 * n, 2 * n);
+        rect(-4 * n, 12 * n, 2 * n, 8 * n);
+        rect(6 * n, 12 * n, 2 * n, 8 * n);
+
+        fill(51, 175);
+        rect(0, 8 * n, 4 * n, 4 * n);
+
+        if (step < lifespan) {
+            fill(22, 122, 198, 175);
+            rect(0, 8 * n, 4 * n, 4 * n);
+
+            fill(255, 0, 0, 175);
+            rect(0, 18 * n, 2 * n, 4 * n);
+            rect(2 * n, 18 * n, 2 * n, 6 * n);
+        }
+
+        if (this.completed) {
+            fill(0, 255, 0, 175);
+
+            rect(0, 0, 4 * n, 4 * n);
+            rect(-n, 4 * n, 6 * n, 14 * n);
+            rect(-2 * n, 12 * n, 1 * n, 2 * n);
+            rect(5 * n, 12 * n, 1 * n, 2 * n);
+            rect(-4 * n, 12 * n, 2 * n, 8 * n);
+            rect(6 * n, 12 * n, 2 * n, 8 * n);
+        }
+    }
+
+    show() {
+        push();
+        translate(this.position.x, this.position.y);
+        rotate(this.velocity.heading() + Math.PI / 2);
+        this.draw(1);
+        pop();
+    }
 }

@@ -1,108 +1,82 @@
 class Population {
 
-  constructor(target, size, lifeSpan) {
-    this.target = target;
-    this.size = size;
-    this.lifeSpan = lifeSpan;
-    this.rockets = [];
-    for (var x = 0; x < size; x++) {
-      this.rockets[x] = new Rocket(lifeSpan);
-    }
-  }
+    constructor() {
+        this.distances = [];
+        this.rockets = [];
 
-  nextStep(count) {
-    for (var x = 0; x < this.rockets.length; x++) {
-      this.rockets[x].update(count, this.target);
-      this.rockets[x].show();
-    }
-  };
-
-  evalution() {
-    var fitness = [];
-    var fitnessSum = 0;
-    for (var x = 0; x < this.rockets.length; x++) {
-      fitness[x] = this.rockets[x].calculateFitness();
-      fitnessSum += fitness[x];
+        for (let x = 0; x < populationSize; x++)
+            this.rockets[x] = new Rocket();
     }
 
-    for (var x = 0; x < this.rockets.length; x++) {
-      this.rockets[x].probability = fitness[x] / fitnessSum;
+    run() {
+        for (let x = 0; x < populationSize; x++) {
+            this.rockets[x].update();
+            this.rockets[x].show();
+        }
     }
 
-    this.createNewPopulation();
+    evaluate() {
+        let best = Number.MAX_SAFE_INTEGER;
+        for (let x = 0; x < populationSize; x++) {
+            this.distances[x] = this.calculateDistance(this.rockets[x].distance)
+            if (this.distances[x] < best)
+                best = this.distances[x];
 
-    var liveRockets = [];
-    for(var x = 0; x < this.size; x++) {
-      var index = this.pickOne(this.rockets);
-      liveRockets.push(this.rockets[index]);
-    }
-    this.rockets = liveRockets;
+            if (this.rockets[x].completed)
+                this.distances[x] *= 0.7;
+            if (this.rockets[x].crashed)
+                this.distances[x] *= 2;
+            //this.distances[x] = 1 / this.distances[x];
+        }
 
-    for(var x = 0; x < this.rockets.length; x++) {
-      //console.log(this.rockets[x].genes[0]);
-    }
-  };
+        let max = Math.max(...this.distances);
+        let min = Math.min(...this.distances);
 
-  createNewPopulation() {
-    var count = 0;
-    var newRockets = [];
-    while (this.rockets.length > 1) {
-      var firstIndex = this.pickOne(this.rockets);
-      var firstRocket = this.rockets[firstIndex];
-      newRockets[count] = firstRocket;
-      this.rockets.splice(firstIndex, 1);
+        console.log("Epoch: %d, Best: %d", epoch, best);
 
-      count++;
-
-      var secondIndex = this.pickOne(this.rockets);
-      var secondRocket = this.rockets[secondIndex];
-      newRockets[count] = secondRocket;
-      this.rockets.splice(secondIndex, 1);
-
-      count++;
-      //newRockets.push(this.breed(firstRocket.genes, secondRocket.genes));
+        for (let x = 0; x < this.distances.length; x++)
+            this.distances[x] = (this.distances[x] - min) / (max - min);
     }
 
-    for(var x = 0; x < newRockets.length; x++) {
-      newRockets[x].startPoint();
-    }
-    this.rockets = newRockets;
-  };
+    selection() {
+        let newRockets = [];
+        for (let x = 0; x < this.distances.length; x++) {
+            let firstIndex = this.pickOne();
+            let firstRocket = this.rockets[firstIndex];
+            this.rockets.splice(firstIndex, 1);
+            this.distances.splice(firstIndex, 1);
 
-  breed(first, second) {
-    var child = [];
-    for(var x = 0; x < first.length; x++) {
-      if(Math.random < 0.5) {
-        child[x] = first[x];
-      } else{
-        child[x] = second[x];
-      }
-      console.log(child[x]);
-    }
-    //child = this.mutate(child);
+            let secondIndex = this.pickOne();
+            let secondRocket = this.rockets[secondIndex];
+            this.rockets.splice(secondIndex, 1);
+            this.distances.splice(secondIndex, 1);
 
-    var childRocket = new Rocket();
-    childRocket.genes = child;
-    return childRocket;
-  };
+            let newDNA = firstRocket.dna.produce(secondRocket.dna);
+            newDNA.mutate();
+            newRockets.push(new Rocket(newDNA));
+            newRockets.push(new Rocket(firstRocket.dna));
+            newRockets.push(new Rocket(secondRocket.dna));
+        }
+        this.rockets = newRockets;
 
-  mutate(genes) {
-    for(var x = 0; x< genes.length; x++) {
-      if(Math.random < 0.001) {
-        genes[x] = createVector();
-        genes[x].setMag(0.5);
-      }
+        while (populationSize < this.rockets.length)
+            this.rockets.splice(this.pickOne(), 1);
     }
-    return genes;
-  };
 
-  pickOne(rockets) {
-    var index = 0;
-    var randomNumber = Math.random();
-    while (randomNumber > 0 && index < rockets.length) {
-      randomNumber = randomNumber - rockets[index].probability;
-      index++;
+    calculateDistance(arr) {
+        let total = 0;
+        for (let x = 0; x < arr.length; x++)
+            total += arr[x];
+        return total / arr.length;
     }
-    return --index;
-  };
+
+    pickOne() {
+        let index = 0;
+        let randomNumber = Math.random();
+        while (randomNumber > 0 && index < this.distances.length) {
+            randomNumber = randomNumber - this.distances[index];
+            index++;
+        }
+        return --index;
+    }
 }
