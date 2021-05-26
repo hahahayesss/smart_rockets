@@ -1,5 +1,5 @@
-const populationSize = 300;
-const lifespan = 500;
+const populationSize = 200;
+const lifespan = 600;
 const mutationRate = 0.01;
 
 let target;

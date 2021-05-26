@@ -27,7 +27,7 @@ class DNA {
 
     createGene() {
         const vec = p5.Vector.random2D();
-        vec.setMag(0.1);
+        vec.setMag(0.2);
         return vec;
     }
 }

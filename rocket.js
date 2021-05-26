@@ -8,8 +8,6 @@ class Rocket {
         this.crashed = false;
         this.completed = false;
 
-        this.distance = [];
-
         if (dna) this.dna = dna;
         else this.dna = new DNA();
     }
@@ -19,17 +17,14 @@ class Rocket {
     }
 
     calculateDistance() {
-        this.distance[step] = dist(
+        return dist(
             this.position.x, this.position.y,
             target.x, target.y
         );
     }
 
     update() {
-        if (dist(
-            this.position.x, this.position.y,
-            target.x, target.y
-        ) < 20)
+        if (this.calculateDistance() < 20)
             this.completed = true;
 
         if (
@@ -50,12 +45,6 @@ class Rocket {
             this.position.add(this.velocity);
             this.acceleration.mult(0);
         }
-
-        /*if (step > lifespan) {
-            this.velocity.mult(0.9);
-            this.calculateDistance();
-        }*/
-        this.calculateDistance();
     }
 
     draw(n) {
