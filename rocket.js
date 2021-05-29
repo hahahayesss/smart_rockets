@@ -41,6 +41,7 @@ class Rocket {
 
         if (!this.completed && !this.crashed) {
             this.applyForce(this.dna.genes[step]);
+            this.applyForce(createVector(0, 0.05));
             this.velocity.add(this.acceleration);
             this.position.add(this.velocity);
             this.acceleration.mult(0);
