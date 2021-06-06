@@ -18,10 +18,12 @@ class Population {
     evaluate() {
         let best = Number.MAX_SAFE_INTEGER;
         for (let x = 0; x < populationSize; x++) {
-            this.fitness[x] = this.rockets[x].calculateDistance(); // küçük iyi, büyük kötü
+            this.fitness[x] = this.rockets[x].calculateDistance();
+            if (this.fitness[x] == 0)
+                this.fitness[x] = 1;
             if (this.fitness[x] < best)
                 best = this.fitness[x];
-            this.fitness[x] = 1 / this.fitness[x]; // büyük iyi, küçük kötü
+            this.fitness[x] = 1 / this.fitness[x];
         }
         console.log("Epoch: %d, Best: %d", epoch, best);
 
@@ -54,14 +56,18 @@ class Population {
         this.rockets = newRockets;
 
         while (populationSize < this.rockets.length)
-            this.rockets.splice(this.pickOne(), 1);
+            this.rockets.splice(
+                Math.floor(
+                    Math.random() * (this.rockets.length - 1)), 1);
     }
 
     pickOne() {
         let index = 0;
         let randomNumber = Math.random();
-        while (randomNumber > 0 && index < this.fitness.length) {
-            randomNumber = randomNumber - this.fitness[index];
+        while (randomNumber > 0) {
+            if (index >= this.fitness.length)
+                index = 0;
+            randomNumber -= this.fitness[index];
             index++;
         }
         return --index;

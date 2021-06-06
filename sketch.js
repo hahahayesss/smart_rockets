@@ -1,6 +1,6 @@
 const populationSize = 200;
 const lifespan = 600;
-const mutationRate = 0.01;
+const mutationRate = 0.001;
 
 let target;
 let barrier;
@@ -22,14 +22,16 @@ function draw() {
     drawTarget(2);
     drawObstacle(25, height / 3);
 
-    this.population.run();
-    step++;
+    for (let x = 0; x < 4; x++) {
+        this.population.run();
+        step++;
 
-    if (step > lifespan) {
-        this.population.evaluate();
-        this.population.selection();
-        step = 0;
-        epoch++;
+        if (step > lifespan) {
+            this.population.evaluate();
+            this.population.selection();
+            step = 0;
+            epoch++;
+        }
     }
 }
 

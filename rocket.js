@@ -24,8 +24,10 @@ class Rocket {
     }
 
     update() {
-        if (this.calculateDistance() < 20)
+        if (this.calculateDistance() < 20) {
             this.completed = true;
+            this.position = target;
+        }
 
         if (
             this.position.x > barrier.x && this.position.x < barrier.x + 25 &&
@@ -41,7 +43,7 @@ class Rocket {
 
         if (!this.completed && !this.crashed) {
             this.applyForce(this.dna.genes[step]);
-            this.applyForce(createVector(0, 0.05));
+            this.applyForce(createVector(0, 0.009));
             this.velocity.add(this.acceleration);
             this.position.add(this.velocity);
             this.acceleration.mult(0);
